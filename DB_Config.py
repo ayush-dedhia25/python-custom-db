@@ -1,5 +1,5 @@
 import os
-from utilities import convertToStr
+from utilities import convertToStr, removeCharacters, extractFields
 
 # Defining the db file :)
 DB_FILE = "db.dms"
@@ -35,6 +35,7 @@ def insertRecord(_object):
 # Logic for deleting a record from the database
 def deleteRecord(_id):
 	records = []
+	filter_out_record = None
 	
 	try:
 		with open(DB_FILE) as dbFile:
@@ -58,32 +59,66 @@ def deleteRecord(_id):
 				# number = eachRecord[2].split("Number: ")[1]
 				
 				# Compare the record_id with provided_id
+				# If _id matches with the record's id then delete that record
+				# And update the db file
 				if _id == id_:
+					filter_out_record = eachRecord
 					records.remove(eachRecord)
+					
+					for current in range(len(records)):
+						# Converting a list to string
+						records[current] = convertToStr(records[current], ", ")
+						# Preventing to add a new line character after the last record
+						if current == len(records) -1:
+							# Adding a special characters at the leading and trailing of the string
+							records[current] = "<" + records[current] + ">;"
+						else:
+							records[current] = "<" + records[current] + ">;\n"
+
+					with open(DB_FILE, "w") as dbFile:
+						# Updating the db file
+						dbFile.writelines(records)
+						dbFile.close()
+						print("Record deleted!")
+					# Stop the loop as we have found the desired id
 					break
-			
-			for current in range(len(records)):
-				# Converting a list to string
-				records[current] = convertToStr(records[current], ", ")
-				# Add a special characters at the leading and trailing of the string
-				# Preventing to add a new line character after the last record
-				if current == len(records) -1:
-					records[current] = "<" + records[current] + ">;"
-				else:
-					records[current] = "<" + records[current] + ">;\n"
-		
-			with open(DB_FILE, "w") as dbFile:
-				# Updating the db file
-				dbFile.writelines(records)
-				dbFile.close()
-				print("Record deleted!")
 				
 	except FileNotFoundError:
 		raise Exception("File not found error!")
+	
+	if filter_out_record is not None:
+		filter_out_record = convertToStr(filter_out_record, ", ")
+		filter_out_record = "<" + filter_out_record + ">"
+		return filter_out_record
+	else:
+		return "No record was found with that `Id`"
 
 # Logic for searching a record by its `ID` from the database
-def findById():
-	pass
+def findById(_id):
+	searched_record = None
+
+	try:
+		with open(DB_FILE) as dbFile:
+			records = dbFile.readlines()
+			# Constructing the readable object
+			array = removeCharacters(records)
+			
+			for curr in array:
+				# Extracting each field from a record
+				rec_id, rec_name, rec_num = extractFields(curr)
+				if _id == rec_id:
+					searched_record = curr
+					break
+
+	except FileNotFoundError:
+		raise Exception("Db file not found!")
+		
+	if searched_record is not None:
+		searched_record = convertToStr(searched_record, ", ")
+		searched_record = "<" + searched_record + ">"
+		return searched_record
+	else:
+		return "No records found with that `Id`"
 
 # Logic for fetching all the records from the database
 def allRecords():
@@ -94,6 +129,7 @@ def allRecords():
 	
 	try:
 		with open(DB_FILE, "r") as db:
+			# Getting each record as a list using db.readlines()
 			records = db.readlines()
 			for i in records:
 				for char in bad_character:
