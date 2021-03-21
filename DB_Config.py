@@ -42,26 +42,18 @@ def deleteRecord(_id):
 			# Step 1 => Fetch all the records
 			rawRecords = dbFile.readlines()
 			# Step 2 => Remove all the unwanted characters from each record
-			for x in rawRecords:
-				x = x.replace("<", "")
-				x = x.replace(">", "")
-				x = x.replace(";", "")
-			# Step 3 => Remove newline character
-				x = x.replace("\n", "")
-			# Step 4 => Extract all the fields from the record
-				x = x.split(", ")
-			# Step 5 => Add all the records to the list
-				records.append(x)
-				
+			rawRecords = removeCharacters(rawRecords)
+			
+			for current_rec in rawRecords:
+				records.append(current_rec)
+
 			for eachRecord in records:
-				id_ = eachRecord[0].split("Id: ")[1]
-				# name = eachRecord[1].split("Name: ")[1]
-				# number = eachRecord[2].split("Number: ")[1]
-				
-				# Compare the record_id with provided_id
+				# Extracting each field from the record
+				rec_id, rec_name, rec_num = extractFields(eachRecord)
+   			# Compare the record_id with provided_id
 				# If _id matches with the record's id then delete that record
 				# And update the db file
-				if _id == id_:
+				if _id == rec_id:
 					filter_out_record = eachRecord
 					records.remove(eachRecord)
 					
@@ -88,8 +80,7 @@ def deleteRecord(_id):
 	
 	if filter_out_record is not None:
 		filter_out_record = convertToStr(filter_out_record, ", ")
-		filter_out_record = "<" + filter_out_record + ">"
-		return filter_out_record
+		return "<" + filter_out_record + ">"
 	else:
 		return "No record was found with that `Id`"
 
@@ -106,6 +97,7 @@ def findById(_id):
 			for curr in array:
 				# Extracting each field from a record
 				rec_id, rec_name, rec_num = extractFields(curr)
+				# Filtering out the required record
 				if _id == rec_id:
 					searched_record = curr
 					break
@@ -128,7 +120,7 @@ def allRecords():
 	refined_set = []
 	
 	try:
-		with open(DB_FILE, "r") as db:
+		with open(DB_FILE) as db:
 			# Getting each record as a list using db.readlines()
 			records = db.readlines()
 			for i in records:
