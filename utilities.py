@@ -32,3 +32,20 @@ def extractFields(record):
 def constructDBObject(record):
 	a, b, c = extractFields(record)
 	return f"<Id: {a}, Name: {b}, Number: {c}>"
+
+# Function for converting a string-type-record to dict-type-record
+def constructObject(records):
+	record_objects = []
+	
+	for x in records:
+		a, b, c = extractFields(x)
+		obj = {
+			"Id": a,
+			"Name": b,
+			"Number": c
+		}
+		record_objects.append(obj)
+	
+	return record_objects
+
+# print(constructObject([['Id: 202103-2113-2127-5893f9d5-714e-4cdb-834e-6416888bd61c', 'Name: Test 4', 'Number: 0101010101']]))

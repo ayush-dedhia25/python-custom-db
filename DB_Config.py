@@ -1,5 +1,5 @@
 import os
-from utilities import convertToStr, removeCharacters, extractFields
+from utilities import convertToStr, removeCharacters, extractFields, constructObject
 
 # Defining the db file :)
 DB_FILE = "db.dms"
@@ -111,40 +111,13 @@ def findById(_id):
 		return searched_record
 	else:
 		return "No records found with that `Id`"
-
-# Logic for fetching all the records from the database
-def allRecords():
-	# Characters to be excluded from the string
-	bad_character = '<>"";'
-	all_records = []
-	refined_set = []
 	
+def fetchRecords():
 	try:
-		with open(DB_FILE) as db:
-			# Getting each record as a list using db.readlines()
-			records = db.readlines()
-			for i in records:
-				for char in bad_character:
-					# Stripping off all the unwanted characters
-					i = i.replace(char, "")
-				# Removing the line breaks from the string
-				i = i.replace("\n", "")
-				# Adding the final sanitized string to the records list
-				all_records.append(i)
-	# Throws an FileNotFound exception if the db file is not found			
+		with open(DB_FILE) as dbFile:
+			records = dbFile.readlines()
+			records = removeCharacters(records)
+			records = constructObject(records)
+			return records
 	except FileNotFoundError:
-		print("database is not found!")
-
-	for record in all_records:
-		# Extracting each field from the plain record string
-		record = record.split(",")
-		# Constructing an object of each record
-		_ = {
-			"ID": str(record[0].strip().split("Id: ")[1]),
-			"Name": record[1].strip().split("Name: ")[1],
-			"Number": record[2].strip().split("Number: ")[1]
-		}
-		# Pushing the record object into the refined_set list
-		refined_set.append(_)
-	# Return the list of all records object
-	return refined_set
+		raise Exception("DB file is missing!")
